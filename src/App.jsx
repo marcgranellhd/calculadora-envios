@@ -602,18 +602,18 @@ export default function VolumetricCalculator() {
   const pointsSide = `${x0 + w},${y0} ${x0 + w + dx},${y0 + dy} ${x0 + w + dx},${y0 - h + dy} ${x0 + w},${y0 - h}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-800">
-      <header className="sticky top-0 z-10 backdrop-blur bg-white/70 border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900">
+      <header className="sticky top-0 z-10 backdrop-blur bg-white/80 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Calculadora volumétrica</h1>
-            <p className="text-sm text-slate-500">Dimensiones en centímetros (cm). Pesa el mayor entre peso real y peso volumétrico.</p>
+            <p className="text-sm text-slate-600">Dimensiones en centímetros (cm). Se cobra el mayor entre peso real y volumétrico.</p>
           </div>
           <div className="flex gap-3 items-end flex-wrap">
             <div className="flex flex-col">
               <label className="text-xs font-medium text-slate-600">Servicio (volumétrico)</label>
               <select
-                className="appearance-none rounded-xl border px-3 py-2 shadow-sm bg-white"
+                className="appearance-none rounded-xl border border-slate-300 px-3 py-2 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
                 value={service}
                 onChange={(e) => {
                   const key = e.target.value;
@@ -632,7 +632,7 @@ export default function VolumetricCalculator() {
               <input
                 type="number"
                 inputMode="numeric"
-                className={`rounded-xl border px-3 py-2 shadow-sm bg-white ${SERVICE_PRESETS[service].editable ? '' : 'opacity-50 cursor-not-allowed'}`}
+                className={`rounded-xl border border-slate-300 px-3 py-2 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 ${SERVICE_PRESETS[service].editable ? '' : 'opacity-50 cursor-not-allowed'}`}
                 value={divisor}
                 onChange={(e) => setDivisor(Number(e.target.value))}
                 disabled={!SERVICE_PRESETS[service].editable}
@@ -642,7 +642,7 @@ export default function VolumetricCalculator() {
             <div className="flex flex-col">
               <label className="text-xs font-medium text-slate-600">Tarifa (precios)</label>
               <select
-                className="appearance-none rounded-xl border px-3 py-2 shadow-sm bg-white"
+                className="appearance-none rounded-xl border border-slate-300 px-3 py-2 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
                 value={tarifario.servicio}
                 onChange={(e) => {
                   const key = e.target.value;
@@ -660,7 +660,7 @@ export default function VolumetricCalculator() {
             <div className="flex flex-col">
               <label className="text-xs font-medium text-slate-600">{tarifario.servicio.startsWith('INTERNACIONAL') ? 'País' : 'Trayecto / Zona'}</label>
               <select
-                className="appearance-none rounded-xl border px-3 py-2 shadow-sm bg-white"
+                className="appearance-none rounded-xl border border-slate-300 px-3 py-2 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
                 value={tarifario.trayecto}
                 onChange={(e) => setTarifario((t) => ({ ...t, trayecto: e.target.value }))}
               >
@@ -669,7 +669,7 @@ export default function VolumetricCalculator() {
                 ))}
               </select>
             </div>
-            <label className="inline-flex items-center gap-2 text-xs ml-auto">
+            <label className="inline-flex items-center gap-2 text-xs ml-auto text-slate-600">
               <input type="checkbox" checked={redondeoEntero} onChange={(e) => setRedondeoEntero(e.target.checked)} />
               Redondear peso facturable a kg entero (Nacional). Internacional ≤ 40 kg usa tabla exacta.
             </label>
@@ -677,19 +677,19 @@ export default function VolumetricCalculator() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4">
-        <div className="mb-4 text-sm text-slate-500">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mb-6 text-sm text-slate-600">
           {SERVICE_PRESETS[service].note && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3">{SERVICE_PRESETS[service].note}</div>
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-4">{SERVICE_PRESETS[service].note}</div>
           )}
           <div className="mt-2 text-slate-600">
             <strong>Incrementos:</strong> Nacional desde <strong>15.01 kg</strong> (columna <em>Precio inc.</em>). Internacional desde <strong>40.01 kg</strong> (columna <em>Precio inc.</em> por país).
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border shadow-sm">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
           <table className="w-full text-left">
-            <thead className="bg-slate-100 text-slate-700 text-sm">
+            <thead className="bg-slate-50 text-slate-700 text-sm">
               <tr>
                 <th className="py-3 px-4">Largo (cm)</th>
                 <th className="py-3 px-4">Ancho (cm)</th>
@@ -709,11 +709,11 @@ export default function VolumetricCalculator() {
                 const row = rows[i] || {};
                 return (
                 <tr key={p.id} className="odd:bg-white even:bg-slate-50">
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.largo} onChange={(e) => updatePkg(p.id, 'largo', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.ancho} onChange={(e) => updatePkg(p.id, 'ancho', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.alto} onChange={(e) => updatePkg(p.id, 'alto', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.pesoReal} onChange={(e) => updatePkg(p.id, 'pesoReal', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="numeric" value={p.cantidad} onChange={(e) => updatePkg(p.id, 'cantidad', e.target.value)} className="w-24 border rounded-lg px-2 py-1" placeholder="1" min={1} /></td>
+                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.largo} onChange={(e) => updatePkg(p.id, 'largo', e.target.value)} className="w-full border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="0" min={0} /></td>
+                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.ancho} onChange={(e) => updatePkg(p.id, 'ancho', e.target.value)} className="w-full border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="0" min={0} /></td>
+                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.alto} onChange={(e) => updatePkg(p.id, 'alto', e.target.value)} className="w-full border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="0" min={0} /></td>
+                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.pesoReal} onChange={(e) => updatePkg(p.id, 'pesoReal', e.target.value)} className="w-full border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="0" min={0} /></td>
+                  <td className="py-2 px-4"><input type="number" inputMode="numeric" value={p.cantidad} onChange={(e) => updatePkg(p.id, 'cantidad', e.target.value)} className="w-24 border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="1" min={1} /></td>
                   <td className="py-2 px-4 tabular-nums">{isNaN(row.volumetricTotal) ? "–" : row.volumetricTotal.toFixed(2)}</td>
                   <td className="py-2 px-4 tabular-nums">{isNaN(row.realTotal) ? "–" : row.realTotal.toFixed(2)}</td>
                   <td className="py-2 px-4 tabular-nums">{isNaN(row.facturableTotal) ? "–" : row.facturableTotal.toFixed(2)}</td>
@@ -729,33 +729,33 @@ export default function VolumetricCalculator() {
 
         <div className="flex flex-wrap gap-3 mt-4 items-center">
           <button onClick={addRow} className="px-4 py-2 rounded-xl bg-slate-900 text-white shadow hover:opacity-90">Añadir fila</button>
-          <button onClick={clearAll} className="px-4 py-2 rounded-xl border bg-white shadow-sm hover:bg-slate-50">Limpiar</button>
+          <button onClick={clearAll} className="px-4 py-2 rounded-xl border border-slate-300 bg-white shadow-sm hover:bg-slate-50">Limpiar</button>
 
           <div className="ml-auto flex flex-wrap gap-3 items-end">
             <div className="flex flex-col">
               <label className="text-xs font-medium text-slate-600">Resumen tarifa</label>
-              <div className="text-sm text-slate-700 bg-slate-50 border rounded-xl px-3 py-2">{tarifario.servicio} · {tarifario.trayecto}</div>
+              <div className="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">{tarifario.servicio} · {tarifario.trayecto}</div>
             </div>
           </div>
         </div>
 
         <section className="grid sm:grid-cols-3 gap-4 mt-6">
-          <div className="rounded-2xl border p-4 bg-white shadow-sm">
+          <div className="rounded-2xl border border-slate-200 p-4 bg-white shadow-sm">
             <div className="text-xs uppercase tracking-wide text-slate-500">Total volumétrico</div>
             <div className="text-2xl font-semibold tabular-nums">{totals.totalVol.toFixed(2)} kg</div>
           </div>
-          <div className="rounded-2xl border p-4 bg-white shadow-sm">
+          <div className="rounded-2xl border border-slate-200 p-4 bg-white shadow-sm">
             <div className="text-xs uppercase tracking-wide text-slate-500">Total real</div>
             <div className="text-2xl font-semibold tabular-nums">{totals.totalReal.toFixed(2)} kg</div>
           </div>
-          <div className="rounded-2xl border p-4 bg-white shadow-sm">
+          <div className="rounded-2xl border border-slate-200 p-4 bg-white shadow-sm">
             <div className="text-xs uppercase tracking-wide text-slate-500">Total a cobrar</div>
             <div className="text-2xl font-semibold tabular-nums">{totals.totalFact.toFixed(2)} €</div>
           </div>
         </section>
 
         {/* Guía visual de dimensiones (Largo, Ancho, Alto) */}
-        <section className="mt-8 p-4 border rounded-xl bg-white">
+        <section className="mt-8 p-5 border border-slate-200 rounded-2xl bg-white shadow-sm">
           <h2 className="font-semibold mb-2">Guía visual de dimensiones</h2>
           <p className="text-sm text-slate-600 mb-3">Se muestran las medidas del <strong>bloque optimizado</strong> de la primera fila. Al aumentar la cantidad, solo crece el <strong>Ancho</strong>.</p>
           <svg viewBox="0 0 400 240" className="w-full max-w-xl">
