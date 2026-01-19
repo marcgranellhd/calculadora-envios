@@ -30,12 +30,12 @@ const TableRow = React.forwardRef(({ className, ...props }, ref) => (
 TableRow.displayName = "TableRow";
 
 const TableHead = React.forwardRef(({ className, ...props }, ref) => (
-  <th ref={ref} className={cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground", className)} {...props} />
+  <th ref={ref} className={cn("h-9 px-2 text-left align-middle text-xs font-medium text-muted-foreground", className)} {...props} />
 ));
 TableHead.displayName = "TableHead";
 
 const TableCell = React.forwardRef(({ className, ...props }, ref) => (
-  <td ref={ref} className={cn("p-4 align-middle", className)} {...props} />
+  <td ref={ref} className={cn("p-2 align-middle", className)} {...props} />
 ));
 TableCell.displayName = "TableCell";
 
