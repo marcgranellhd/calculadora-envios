@@ -629,19 +629,19 @@ export default function VolumetricCalculator() {
     <div className="h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900">
       <header className="z-10 backdrop-blur bg-white/80 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-          <h1 className="text-xl md:text-2xl font-semibold tracking-tight">Calculadora volumétrica</h1>
-          <p className="text-xs text-slate-600">Dimensiones en centímetros (cm). Se cobra el mayor entre peso real y volumétrico.</p>
+          <h1 className="text-xl font-semibold tracking-tight">Calculadora volumétrica</h1>
+          <p className="text-[11px] text-slate-600">Dimensiones en centímetros (cm). Se cobra el mayor entre peso real y volumétrico.</p>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 h-[calc(100vh-64px)] overflow-hidden">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 h-[calc(100vh-56px)] overflow-hidden">
         <div className="grid h-full gap-3 lg:grid-cols-[360px_1fr]">
           <div className="flex h-full flex-col gap-3">
             <Card>
               <CardHeader className="pb-1">
                 <CardTitle className="text-base">Parámetros</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 pt-2">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-[11px] font-medium text-muted-foreground">Servicio (volumétrico)</label>
@@ -726,7 +726,7 @@ export default function VolumetricCalculator() {
             </Card>
 
             <Card>
-              <CardContent className="pt-4 space-y-2 text-xs text-slate-600">
+              <CardContent className="pt-3 space-y-2 text-[11px] text-slate-600">
                 {SERVICE_PRESETS[service].note && (
                   <div className="rounded-xl border border-amber-200 bg-amber-50 text-amber-800 px-4 py-3">
                     {SERVICE_PRESETS[service].note}
@@ -740,21 +740,21 @@ export default function VolumetricCalculator() {
 
             <section className="grid grid-cols-3 gap-2">
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4">
                   <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Total volumétrico</div>
-                  <div className="text-lg font-semibold tabular-nums">{totals.totalVol.toFixed(2)} kg</div>
+                  <div className="text-base font-semibold tabular-nums">{totals.totalVol.toFixed(2)} kg</div>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4">
                   <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Total real</div>
-                  <div className="text-lg font-semibold tabular-nums">{totals.totalReal.toFixed(2)} kg</div>
+                  <div className="text-base font-semibold tabular-nums">{totals.totalReal.toFixed(2)} kg</div>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4">
                   <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Total a cobrar</div>
-                  <div className="text-lg font-semibold tabular-nums">{totals.totalFact.toFixed(2)} €</div>
+                  <div className="text-base font-semibold tabular-nums">{totals.totalFact.toFixed(2)} €</div>
                 </CardContent>
               </Card>
             </section>
@@ -764,8 +764,8 @@ export default function VolumetricCalculator() {
                 <CardTitle className="text-base">Guía visual de dimensiones</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-xs text-muted-foreground mb-2">Se muestran las medidas del <strong>bloque optimizado</strong> de la primera fila. Al aumentar la cantidad, solo crece el <strong>Ancho</strong>.</p>
-                <svg viewBox="0 0 400 240" className="w-full max-w-xs">
+                <p className="text-[11px] text-muted-foreground mb-2">Se muestran las medidas del <strong>bloque optimizado</strong> de la primera fila. Al aumentar la cantidad, solo crece el <strong>Ancho</strong>.</p>
+                <svg viewBox="0 0 400 240" className="w-full max-w-[240px]">
                 {/* Cara frontal */}
                 <polygon points={pointsFront} fill="#e2e8f0" stroke="#334155" />
                 {/* Cara superior */}
@@ -791,7 +791,7 @@ export default function VolumetricCalculator() {
                   </marker>
                 </defs>
                 </svg>
-                <div className="mt-2 text-xs text-muted-foreground">
+                <div className="mt-2 text-[11px] text-muted-foreground">
                   <span className="inline-block mr-4">Largo ≈ {Lnum}{typeof first.largo === 'number' ? ' cm' : ''}</span>
                   <span className="inline-block mr-4">Ancho ≈ {Anum}{typeof first.ancho === 'number' ? ' cm' : ''}</span>
                   <span className="inline-block">Alto ≈ {Hnum}{typeof first.alto === 'number' ? ' cm' : ''}</span>
@@ -806,7 +806,7 @@ export default function VolumetricCalculator() {
                 <CardTitle className="text-base">Detalle por fila</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <Table className="text-xs">
+                <Table className="text-[11px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Largo (cm)</TableHead>
@@ -828,19 +828,19 @@ export default function VolumetricCalculator() {
                   return (
                     <TableRow key={p.id}>
                       <TableCell>
-                        <Input className="h-8 text-xs" type="number" inputMode="decimal" value={p.largo} onChange={(e) => updatePkg(p.id, 'largo', e.target.value)} placeholder="0" min={0} />
+                        <Input className="h-7 text-[11px]" type="number" inputMode="decimal" value={p.largo} onChange={(e) => updatePkg(p.id, 'largo', e.target.value)} placeholder="0" min={0} />
                       </TableCell>
                       <TableCell>
-                        <Input className="h-8 text-xs" type="number" inputMode="decimal" value={p.ancho} onChange={(e) => updatePkg(p.id, 'ancho', e.target.value)} placeholder="0" min={0} />
+                        <Input className="h-7 text-[11px]" type="number" inputMode="decimal" value={p.ancho} onChange={(e) => updatePkg(p.id, 'ancho', e.target.value)} placeholder="0" min={0} />
                       </TableCell>
                       <TableCell>
-                        <Input className="h-8 text-xs" type="number" inputMode="decimal" value={p.alto} onChange={(e) => updatePkg(p.id, 'alto', e.target.value)} placeholder="0" min={0} />
+                        <Input className="h-7 text-[11px]" type="number" inputMode="decimal" value={p.alto} onChange={(e) => updatePkg(p.id, 'alto', e.target.value)} placeholder="0" min={0} />
                       </TableCell>
                       <TableCell>
-                        <Input className="h-8 text-xs" type="number" inputMode="decimal" value={p.pesoReal} onChange={(e) => updatePkg(p.id, 'pesoReal', e.target.value)} placeholder="0" min={0} />
+                        <Input className="h-7 text-[11px]" type="number" inputMode="decimal" value={p.pesoReal} onChange={(e) => updatePkg(p.id, 'pesoReal', e.target.value)} placeholder="0" min={0} />
                       </TableCell>
                       <TableCell>
-                        <Input className="h-8 text-xs" type="number" inputMode="numeric" value={p.cantidad} onChange={(e) => updatePkg(p.id, 'cantidad', e.target.value)} placeholder="1" min={1} />
+                        <Input className="h-7 text-[11px]" type="number" inputMode="numeric" value={p.cantidad} onChange={(e) => updatePkg(p.id, 'cantidad', e.target.value)} placeholder="1" min={1} />
                       </TableCell>
                       <TableCell className="tabular-nums">{isNaN(row.volumetricTotal) ? "–" : row.volumetricTotal.toFixed(2)}</TableCell>
                       <TableCell className="tabular-nums">{isNaN(row.realTotal) ? "–" : row.realTotal.toFixed(2)}</TableCell>
@@ -858,15 +858,15 @@ export default function VolumetricCalculator() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-wrap gap-3 items-center">
-          <Button onClick={addRow}>Añadir fila</Button>
-          <Button variant="outline" onClick={clearAll}>Limpiar</Button>
+        <div className="flex flex-wrap gap-2 items-center">
+          <Button size="sm" onClick={addRow}>Añadir fila</Button>
+          <Button size="sm" variant="outline" onClick={clearAll}>Limpiar</Button>
 
           <div className="ml-auto">
             <Card>
-              <CardContent className="py-3">
+              <CardContent className="py-2">
                 <div className="text-xs font-medium text-muted-foreground">Resumen tarifa</div>
-                <div className="text-sm">{tarifario.servicio} · {tarifario.trayecto}</div>
+                <div className="text-[11px]">{tarifario.servicio} · {tarifario.trayecto}</div>
               </CardContent>
             </Card>
           </div>
