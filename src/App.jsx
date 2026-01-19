@@ -1,4 +1,28 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import { Checkbox } from "./components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./components/ui/table";
 
 // Calculadora volumétrica — envío consolidado (UI completa)
 // - Consolida cada fila como un SOLO envío con apilado restringido: SOLO crece el ANCHO por cantidad
@@ -604,161 +628,214 @@ export default function VolumetricCalculator() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900">
       <header className="sticky top-0 z-10 backdrop-blur bg-white/80 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Calculadora volumétrica</h1>
-            <p className="text-sm text-slate-600">Dimensiones en centímetros (cm). Se cobra el mayor entre peso real y volumétrico.</p>
-          </div>
-          <div className="flex gap-3 items-end flex-wrap">
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">Servicio (volumétrico)</label>
-              <select
-                className="appearance-none rounded-xl border border-slate-300 px-3 py-2 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
-                value={service}
-                onChange={(e) => {
-                  const key = e.target.value;
-                  setService(key);
-                  const preset = SERVICE_PRESETS[key];
-                  if (typeof preset.divisor === "number") setDivisor(preset.divisor);
-                }}
-              >
-                {Object.keys(SERVICE_PRESETS).map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">Divisor (cm³/kg)</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                className={`rounded-xl border border-slate-300 px-3 py-2 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 ${SERVICE_PRESETS[service].editable ? '' : 'opacity-50 cursor-not-allowed'}`}
-                value={divisor}
-                onChange={(e) => setDivisor(Number(e.target.value))}
-                disabled={!SERVICE_PRESETS[service].editable}
-                min={1}
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">Tarifa (precios)</label>
-              <select
-                className="appearance-none rounded-xl border border-slate-300 px-3 py-2 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
-                value={tarifario.servicio}
-                onChange={(e) => {
-                  const key = e.target.value;
-                  const s = (key in TARIFAS) ? TARIFAS[key] : undefined;
-                  const firstAvailable = s ? Object.keys(s).find((k) => s[k]?.brackets?.length > 0) : "";
-                  setTarifario({ servicio: key, trayecto: firstAvailable || "" });
-                }}
-              >
-                {servicioKeys.map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-                <option value="(sin precio)">(sin precio)</option>
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">{tarifario.servicio.startsWith('INTERNACIONAL') ? 'País' : 'Trayecto / Zona'}</label>
-              <select
-                className="appearance-none rounded-xl border border-slate-300 px-3 py-2 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
-                value={tarifario.trayecto}
-                onChange={(e) => setTarifario((t) => ({ ...t, trayecto: e.target.value }))}
-              >
-                {trayectoKeys.map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
-            </div>
-            <label className="inline-flex items-center gap-2 text-xs ml-auto text-slate-600">
-              <input type="checkbox" checked={redondeoEntero} onChange={(e) => setRedondeoEntero(e.target.checked)} />
-              Redondear peso facturable a kg entero (Nacional). Internacional ≤ 40 kg usa tabla exacta.
-            </label>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Calculadora volumétrica</h1>
+          <p className="text-sm text-slate-600">Dimensiones en centímetros (cm). Se cobra el mayor entre peso real y volumétrico.</p>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6 text-sm text-slate-600">
-          {SERVICE_PRESETS[service].note && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-4">{SERVICE_PRESETS[service].note}</div>
-          )}
-          <div className="mt-2 text-slate-600">
-            <strong>Incrementos:</strong> Nacional desde <strong>15.01 kg</strong> (columna <em>Precio inc.</em>). Internacional desde <strong>40.01 kg</strong> (columna <em>Precio inc.</em> por país).
-          </div>
-        </div>
-
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 text-slate-700 text-sm">
-              <tr>
-                <th className="py-3 px-4">Largo (cm)</th>
-                <th className="py-3 px-4">Ancho (cm)</th>
-                <th className="py-3 px-4">Alto (cm)</th>
-                <th className="py-3 px-4">Peso real (kg)</th>
-                <th className="py-3 px-4">Cantidad</th>
-                <th className="py-3 px-4">Volumétrico total (kg)</th>
-                <th className="py-3 px-4">Real total (kg)</th>
-                <th className="py-3 px-4">Facturable total (kg)</th>
-                <th className="py-3 px-4">Bloque optimizado (cm)</th>
-                <th className="py-3 px-4">Precio línea (€)</th>
-                <th className="py-3 px-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {packages.map((p, i) => {
-                const row = rows[i] || {};
-                return (
-                <tr key={p.id} className="odd:bg-white even:bg-slate-50">
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.largo} onChange={(e) => updatePkg(p.id, 'largo', e.target.value)} className="w-full border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.ancho} onChange={(e) => updatePkg(p.id, 'ancho', e.target.value)} className="w-full border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.alto} onChange={(e) => updatePkg(p.id, 'alto', e.target.value)} className="w-full border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.pesoReal} onChange={(e) => updatePkg(p.id, 'pesoReal', e.target.value)} className="w-full border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="numeric" value={p.cantidad} onChange={(e) => updatePkg(p.id, 'cantidad', e.target.value)} className="w-24 border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="1" min={1} /></td>
-                  <td className="py-2 px-4 tabular-nums">{isNaN(row.volumetricTotal) ? "–" : row.volumetricTotal.toFixed(2)}</td>
-                  <td className="py-2 px-4 tabular-nums">{isNaN(row.realTotal) ? "–" : row.realTotal.toFixed(2)}</td>
-                  <td className="py-2 px-4 tabular-nums">{isNaN(row.facturableTotal) ? "–" : row.facturableTotal.toFixed(2)}</td>
-                  <td className="py-2 px-4 tabular-nums">{row.dimsOpt ? `${row.dimsOpt[0]}×${row.dimsOpt[1]}×${row.dimsOpt[2]}` : "–"}</td>
-                  <td className="py-2 px-4 font-medium tabular-nums">{row.precioLinea == null || isNaN(row.precioLinea) ? "–" : row.precioLinea.toFixed(2)}</td>
-                  <td className="py-2 px-4 text-right"><button onClick={() => removeRow(p.id)} className="text-sm text-rose-600 hover:underline">Eliminar</button></td>
-                </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="flex flex-wrap gap-3 mt-4 items-center">
-          <button onClick={addRow} className="px-4 py-2 rounded-xl bg-slate-900 text-white shadow hover:opacity-90">Añadir fila</button>
-          <button onClick={clearAll} className="px-4 py-2 rounded-xl border border-slate-300 bg-white shadow-sm hover:bg-slate-50">Limpiar</button>
-
-          <div className="ml-auto flex flex-wrap gap-3 items-end">
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">Resumen tarifa</label>
-              <div className="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">{tarifario.servicio} · {tarifario.trayecto}</div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Parámetros</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Servicio (volumétrico)</label>
+                <Select
+                  value={service}
+                  onValueChange={(value) => {
+                    setService(value);
+                    const preset = SERVICE_PRESETS[value];
+                    if (typeof preset.divisor === "number") setDivisor(preset.divisor);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(SERVICE_PRESETS).map((k) => (
+                      <SelectItem key={k} value={k}>{k}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Divisor (cm³/kg)</label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={divisor}
+                  onChange={(e) => setDivisor(Number(e.target.value))}
+                  disabled={!SERVICE_PRESETS[service].editable}
+                  min={1}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Tarifa (precios)</label>
+                <Select
+                  value={tarifario.servicio}
+                  onValueChange={(value) => {
+                    const s = (value in TARIFAS) ? TARIFAS[value] : undefined;
+                    const firstAvailable = s ? Object.keys(s).find((k) => s[k]?.brackets?.length > 0) : "";
+                    setTarifario({ servicio: value, trayecto: firstAvailable || "" });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {servicioKeys.map((k) => (
+                      <SelectItem key={k} value={k}>{k}</SelectItem>
+                    ))}
+                    <SelectItem value="(sin precio)">(sin precio)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">{tarifario.servicio.startsWith('INTERNACIONAL') ? 'País' : 'Trayecto / Zona'}</label>
+                <Select
+                  value={tarifario.trayecto}
+                  onValueChange={(value) => setTarifario((t) => ({ ...t, trayecto: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {trayectoKeys.map((k) => (
+                      <SelectItem key={k} value={k}>{k}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={redondeoEntero}
+                  onCheckedChange={(value) => setRedondeoEntero(!!value)}
+                />
+                <span>Redondear peso facturable a kg entero (Nacional). Internacional ≤ 40 kg usa tabla exacta.</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6 space-y-2 text-sm text-slate-600">
+            {SERVICE_PRESETS[service].note && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 text-amber-800 px-4 py-3">
+                {SERVICE_PRESETS[service].note}
+              </div>
+            )}
+            <div>
+              <strong>Incrementos:</strong> Nacional desde <strong>15.01 kg</strong> (columna <em>Precio inc.</em>). Internacional desde <strong>40.01 kg</strong> (columna <em>Precio inc.</em> por país).
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Detalle por fila</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Largo (cm)</TableHead>
+                  <TableHead>Ancho (cm)</TableHead>
+                  <TableHead>Alto (cm)</TableHead>
+                  <TableHead>Peso real (kg)</TableHead>
+                  <TableHead>Cantidad</TableHead>
+                  <TableHead>Volumétrico total (kg)</TableHead>
+                  <TableHead>Real total (kg)</TableHead>
+                  <TableHead>Facturable total (kg)</TableHead>
+                  <TableHead>Bloque optimizado (cm)</TableHead>
+                  <TableHead>Precio línea (€)</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {packages.map((p, i) => {
+                  const row = rows[i] || {};
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        <Input type="number" inputMode="decimal" value={p.largo} onChange={(e) => updatePkg(p.id, 'largo', e.target.value)} placeholder="0" min={0} />
+                      </TableCell>
+                      <TableCell>
+                        <Input type="number" inputMode="decimal" value={p.ancho} onChange={(e) => updatePkg(p.id, 'ancho', e.target.value)} placeholder="0" min={0} />
+                      </TableCell>
+                      <TableCell>
+                        <Input type="number" inputMode="decimal" value={p.alto} onChange={(e) => updatePkg(p.id, 'alto', e.target.value)} placeholder="0" min={0} />
+                      </TableCell>
+                      <TableCell>
+                        <Input type="number" inputMode="decimal" value={p.pesoReal} onChange={(e) => updatePkg(p.id, 'pesoReal', e.target.value)} placeholder="0" min={0} />
+                      </TableCell>
+                      <TableCell>
+                        <Input type="number" inputMode="numeric" value={p.cantidad} onChange={(e) => updatePkg(p.id, 'cantidad', e.target.value)} placeholder="1" min={1} />
+                      </TableCell>
+                      <TableCell className="tabular-nums">{isNaN(row.volumetricTotal) ? "–" : row.volumetricTotal.toFixed(2)}</TableCell>
+                      <TableCell className="tabular-nums">{isNaN(row.realTotal) ? "–" : row.realTotal.toFixed(2)}</TableCell>
+                      <TableCell className="tabular-nums">{isNaN(row.facturableTotal) ? "–" : row.facturableTotal.toFixed(2)}</TableCell>
+                      <TableCell className="tabular-nums">{row.dimsOpt ? `${row.dimsOpt[0]}×${row.dimsOpt[1]}×${row.dimsOpt[2]}` : "–"}</TableCell>
+                      <TableCell className="font-medium tabular-nums">{row.precioLinea == null || isNaN(row.precioLinea) ? "–" : row.precioLinea.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => removeRow(p.id)}>Eliminar</Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-wrap gap-3 items-center">
+          <Button onClick={addRow}>Añadir fila</Button>
+          <Button variant="outline" onClick={clearAll}>Limpiar</Button>
+
+          <div className="ml-auto">
+            <Card>
+              <CardContent className="py-3">
+                <div className="text-xs font-medium text-muted-foreground">Resumen tarifa</div>
+                <div className="text-sm">{tarifario.servicio} · {tarifario.trayecto}</div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        <section className="grid sm:grid-cols-3 gap-4 mt-6">
-          <div className="rounded-2xl border border-slate-200 p-4 bg-white shadow-sm">
-            <div className="text-xs uppercase tracking-wide text-slate-500">Total volumétrico</div>
-            <div className="text-2xl font-semibold tabular-nums">{totals.totalVol.toFixed(2)} kg</div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 p-4 bg-white shadow-sm">
-            <div className="text-xs uppercase tracking-wide text-slate-500">Total real</div>
-            <div className="text-2xl font-semibold tabular-nums">{totals.totalReal.toFixed(2)} kg</div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 p-4 bg-white shadow-sm">
-            <div className="text-xs uppercase tracking-wide text-slate-500">Total a cobrar</div>
-            <div className="text-2xl font-semibold tabular-nums">{totals.totalFact.toFixed(2)} €</div>
-          </div>
+        <section className="grid sm:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Total volumétrico</div>
+              <div className="text-2xl font-semibold tabular-nums">{totals.totalVol.toFixed(2)} kg</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Total real</div>
+              <div className="text-2xl font-semibold tabular-nums">{totals.totalReal.toFixed(2)} kg</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Total a cobrar</div>
+              <div className="text-2xl font-semibold tabular-nums">{totals.totalFact.toFixed(2)} €</div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Guía visual de dimensiones (Largo, Ancho, Alto) */}
-        <section className="mt-8 p-5 border border-slate-200 rounded-2xl bg-white shadow-sm">
-          <h2 className="font-semibold mb-2">Guía visual de dimensiones</h2>
-          <p className="text-sm text-slate-600 mb-3">Se muestran las medidas del <strong>bloque optimizado</strong> de la primera fila. Al aumentar la cantidad, solo crece el <strong>Ancho</strong>.</p>
-          <svg viewBox="0 0 400 240" className="w-full max-w-xl">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Guía visual de dimensiones</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">Se muestran las medidas del <strong>bloque optimizado</strong> de la primera fila. Al aumentar la cantidad, solo crece el <strong>Ancho</strong>.</p>
+            <svg viewBox="0 0 400 240" className="w-full max-w-xl">
             {/* Cara frontal */}
             <polygon points={pointsFront} fill="#e2e8f0" stroke="#334155" />
             {/* Cara superior */}
@@ -783,13 +860,14 @@ export default function VolumetricCalculator() {
                 <path d="M0,0 L6,3 L0,6 Z" fill="#0f172a" />
               </marker>
             </defs>
-          </svg>
-          <div className="mt-3 text-sm text-slate-600">
-            <span className="inline-block mr-4">Largo ≈ {Lnum}{typeof first.largo === 'number' ? ' cm' : ''}</span>
-            <span className="inline-block mr-4">Ancho ≈ {Anum}{typeof first.ancho === 'number' ? ' cm' : ''}</span>
-            <span className="inline-block">Alto ≈ {Hnum}{typeof first.alto === 'number' ? ' cm' : ''}</span>
-          </div>
-        </section>
+            </svg>
+            <div className="mt-3 text-sm text-muted-foreground">
+              <span className="inline-block mr-4">Largo ≈ {Lnum}{typeof first.largo === 'number' ? ' cm' : ''}</span>
+              <span className="inline-block mr-4">Ancho ≈ {Anum}{typeof first.ancho === 'number' ? ' cm' : ''}</span>
+              <span className="inline-block">Alto ≈ {Hnum}{typeof first.alto === 'number' ? ' cm' : ''}</span>
+            </div>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
