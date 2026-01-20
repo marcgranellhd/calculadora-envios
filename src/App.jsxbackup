@@ -1,6 +1,30 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import { Checkbox } from "./components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./components/ui/table";
 
-// Calculadora volumétrica GLS — envío consolidado (UI completa)
+// Calculadora volumétrica — envío consolidado (UI completa)
 // - Consolida cada fila como un SOLO envío con apilado restringido: SOLO crece el ANCHO por cantidad
 // - Muestra dimensiones del bloque optimizado (L×A×H)
 // - Selector de servicio (divisor), tarifa (nacional/internacional) y país/zona
@@ -8,25 +32,11 @@ import React, { useEffect, useMemo, useState } from "react";
 // - Incrementos: nacional desde 15.01 kg, internacional desde 40.01 kg
 // - Totales y guía visual (SVG) al final
 
-export default function GLSVolumetricCalculator() {
-  // Tipos
-  type Package = {
-    id: string;
-    largo: number | "";
-    ancho: number | "";
-    alto: number | "";
-    pesoReal: number | "";
-    cantidad: number | "";
-  };
-  type Bracket = { hasta: number; precio: number };
-  type Overflow = { desde: number; base: number; pasoKg: number; incPrecio: number };
-  type TrayectoTarifa = { nombre: string; brackets: Bracket[]; overflow?: Overflow };
-  type ServicioTarifa = Record<string, TrayectoTarifa>;
-
+export default function VolumetricCalculator() {
   // ======================
   // Tarifas (ejemplo parcial; puedes ampliarlas según el PDF)
   // ======================
-  const TARIFAS: Record<string, ServicioTarifa> = {
+  const TARIFAS = {
   // Nacional
   "EXPRESS 10:30": {
     PENINSULAR: {
@@ -449,34 +459,32 @@ export default function GLSVolumetricCalculator() {
     "Internacional Express (avión)": { divisor: 5000, editable: false, note: "m3→200 kg ⇒ 1e6/200 = 5000" },
     "Internacional Economy (carretera)": { divisor: 4000, editable: false, note: "m3→250 kg ⇒ 1e6/250 = 4000" },
     Personalizado: { divisor: 6000, editable: true },
-  } as const;
+  };
 
   // ======================
   // Estado
   // ======================
   const niceId = () => Math.random().toString(36).slice(2, 9);
-  const [service, setService] = useState<keyof typeof SERVICE_PRESETS>("Nacional (según contrato)");
-  const [divisor, setDivisor] = useState<number>(SERVICE_PRESETS["Nacional (según contrato)"].divisor);
-  const [packages, setPackages] = useState<Package[]>([
+  const [service, setService] = useState("Nacional (según contrato)");
+  const [divisor, setDivisor] = useState(SERVICE_PRESETS["Nacional (según contrato)"].divisor);
+  const [packages, setPackages] = useState([
     { id: niceId(), largo: "", ancho: "", alto: "", pesoReal: "", cantidad: 1 },
   ]);
-  const [tarifario, setTarifario] = useState<{ servicio: keyof typeof TARIFAS | "(sin precio)"; trayecto: string }>(
-  { servicio: "INTERNACIONAL", trayecto: "ALEMANIA" }
-);
+  const [tarifario, setTarifario] = useState({ servicio: "INTERNACIONAL", trayecto: "ALEMANIA" });
   const [redondeoEntero, setRedondeoEntero] = useState(true);
 
   // ======================
   // Helpers
   // ======================
-  const getTarifaActual = (): TrayectoTarifa | null => {
-    const s = TARIFAS[tarifario.servicio as keyof typeof TARIFAS];
+  const getTarifaActual = () => {
+    const s = TARIFAS[tarifario.servicio];
     if (!s) return null;
     return s[tarifario.trayecto];
   };
 
   // Cálculo de precio: Internacional ≤ 40 kg usa tabla exacta (sin incremento), > 40 kg overflow por kg.
   // Nacional: usa redondeo opcional a entero y overflow desde 15.01 kg.
-  const calcularPrecio = (peso: number, tarifa: TrayectoTarifa | null, round = redondeoEntero): number | null => {
+  const calcularPrecio = (peso, tarifa, round = redondeoEntero) => {
   if (!tarifa || !isFinite(peso)) return null;
   const isIntl = tarifario.servicio.toString().startsWith("INTERNACIONAL");
 
@@ -510,11 +518,11 @@ export default function GLSVolumetricCalculator() {
 
   // Apilado RESTRINGIDO: solo crece el ANCHO con la cantidad
   const packPreferAncho = (
-    l: number,
-    a: number,
-    h: number,
-    q: number
-  ): { vol: number; arrangement: [number, number, number]; dims: [number, number, number] } => {
+    l,
+    a,
+    h,
+    q
+  ) => {
     const Q = Math.max(1, Math.ceil(q));
     const nA = Q; // todo en profundidad
     const nL = 1; // largo fijo
@@ -525,11 +533,11 @@ export default function GLSVolumetricCalculator() {
     return { vol: Lb * Ab * Hb, arrangement: [nL, nA, nH], dims: [Lb, Ab, Hb] };
   };
 
-  const updatePkg = (id: string, field: keyof Package, v: string) => {
+  const updatePkg = (id, field, v) => {
     setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: v === "" ? "" : Number(v) } : p)));
   };
   const addRow = () => setPackages((prev) => [...prev, { id: niceId(), largo: "", ancho: "", alto: "", pesoReal: "", cantidad: 1 }]);
-  const removeRow = (id: string) => setPackages((prev) => prev.filter((p) => p.id !== id));
+  const removeRow = (id) => setPackages((prev) => prev.filter((p) => p.id !== id));
   const clearAll = () => setPackages([{ id: niceId(), largo: "", ancho: "", alto: "", pesoReal: "", cantidad: 1 }]);
 
   const rows = useMemo(() => {
@@ -537,14 +545,14 @@ export default function GLSVolumetricCalculator() {
     return packages.map((p) => {
       const validDims = [p.largo, p.ancho, p.alto].every((n) => typeof n === "number" && n > 0);
       const validQty = typeof p.cantidad === "number" && p.cantidad > 0;
-      const q = validQty ? (p.cantidad as number) : NaN;
-      const realUnit = typeof p.pesoReal === "number" && p.pesoReal >= 0 ? (p.pesoReal as number) : NaN;
+      const q = validQty ? p.cantidad : NaN;
+      const realUnit = typeof p.pesoReal === "number" && p.pesoReal >= 0 ? p.pesoReal : NaN;
 
       let volKgTotal = NaN;
-      let dimsOpt: [number, number, number] | null = null;
-      let arr: [number, number, number] | null = null;
+      let dimsOpt = null;
+      let arr = null;
       if (validDims && divisor > 0 && validQty) {
-        const L = p.largo as number, A = p.ancho as number, H = p.alto as number;
+        const L = p.largo, A = p.ancho, H = p.alto;
         const packed = packPreferAncho(L, A, H, q);
         volKgTotal = packed.vol / divisor;
         dimsOpt = packed.dims;
@@ -554,25 +562,25 @@ export default function GLSVolumetricCalculator() {
       const realTotal = (!isNaN(realUnit) && !isNaN(q)) ? realUnit * q : NaN;
       const facturableTotal = (isNaN(volKgTotal) && isNaN(realTotal)) ? NaN : Math.max(isNaN(realTotal) ? 0 : realTotal, isNaN(volKgTotal) ? 0 : volKgTotal);
       const precioLinea = calcularPrecio(facturableTotal, tarifa);
-      const totalLinea = (precioLinea != null && !isNaN(facturableTotal)) ? (precioLinea as number) : NaN;
+      const totalLinea = (precioLinea != null && !isNaN(facturableTotal)) ? precioLinea : NaN;
 
-      return { ...p, volumetricTotal: volKgTotal, realTotal, facturableTotal, precioLinea, totalLinea, dimsOpt, arr } as any;
+      return { ...p, volumetricTotal: volKgTotal, realTotal, facturableTotal, precioLinea, totalLinea, dimsOpt, arr };
     });
   }, [packages, divisor, tarifario, redondeoEntero]);
 
   const totals = useMemo(() => {
-    const totalVol = rows.reduce((acc: number, r: any) => acc + (isNaN(r.volumetricTotal) ? 0 : (r.volumetricTotal as number)), 0);
-    const totalReal = rows.reduce((acc: number, r: any) => acc + (isNaN(r.realTotal) ? 0 : (r.realTotal as number)), 0);
-    const totalFact = rows.reduce((acc: number, r: any) => acc + (isNaN(r.totalLinea) ? 0 : (r.totalLinea as number)), 0);
+    const totalVol = rows.reduce((acc, r) => acc + (isNaN(r.volumetricTotal) ? 0 : r.volumetricTotal), 0);
+    const totalReal = rows.reduce((acc, r) => acc + (isNaN(r.realTotal) ? 0 : r.realTotal), 0);
+    const totalFact = rows.reduce((acc, r) => acc + (isNaN(r.totalLinea) ? 0 : r.totalLinea), 0);
     return { totalVol, totalReal, totalFact };
   }, [rows]);
 
-  const servicioKeys = Object.keys(TARIFAS) as (keyof typeof TARIFAS)[];
+  const servicioKeys = Object.keys(TARIFAS);
   const trayectoKeys = useMemo(() => {
-    const s = TARIFAS[tarifario.servicio as keyof typeof TARIFAS];
+    const s = TARIFAS[tarifario.servicio];
     if (!s) return [];
     return Object.keys(s).filter((k) => {
-      const t = (s as any)[k] as TrayectoTarifa;
+      const t = s[k];
       return Array.isArray(t?.brackets) && t.brackets.length > 0;
     });
   }, [tarifario.servicio]);
@@ -581,7 +589,7 @@ export default function GLSVolumetricCalculator() {
   // Tests rápidos (consola)
   // ======================
   useEffect(() => {
-  const eq = (a: number | null, b: number, eps = 1e-6) => a != null && Math.abs((a as number) - b) < eps;
+  const eq = (a, b, eps = 1e-6) => a != null && Math.abs(a - b) < eps;
   // Nacional
   console.assert(eq(calcularPrecio(14, TARIFAS["EXPRESS 19:00"].PENINSULAR, true), 8.65), "EXPRESS 19:00 14 kg = 8.65");
   console.assert(eq(calcularPrecio(16, TARIFAS["EXPRESS 19:00"].PENINSULAR, true), 9.08), "EXPRESS 19:00 16 kg = 9.08");
@@ -599,8 +607,8 @@ export default function GLSVolumetricCalculator() {
   // Render (UI completa)
   // ======================
   // Dimensiones para el diagrama: usar el BLOQUE OPTIMIZADO de la primera fila
-  const first: any = rows[0] || ({} as any);
-  const dimsBlock: [number, number, number] | null = first?.dimsOpt || null; // [Lopt, Aopt, Hopt]
+  const first = rows[0] || {};
+  const dimsBlock = first?.dimsOpt || null; // [Lopt, Aopt, Hopt]
   const Lnum = dimsBlock ? dimsBlock[0] : (Number(first.largo) > 0 ? Number(first.largo) : 30);
   const Anum = dimsBlock ? dimsBlock[1] : (Number(first.ancho) > 0 ? Number(first.ancho) : 20);
   const Hnum = dimsBlock ? dimsBlock[2] : (Number(first.alto)  > 0 ? Number(first.alto)  : 15);
@@ -618,191 +626,253 @@ export default function GLSVolumetricCalculator() {
   const pointsSide = `${x0 + w},${y0} ${x0 + w + dx},${y0 + dy} ${x0 + w + dx},${y0 - h + dy} ${x0 + w},${y0 - h}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-800">
-      <header className="sticky top-0 z-10 backdrop-blur bg-white/70 border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Calculadora volumétrica · GLS</h1>
-            <p className="text-sm text-slate-500">Dimensiones en centímetros (cm). Pesa el mayor entre peso real y peso volumétrico.</p>
-          </div>
-          <div className="flex gap-3 items-end flex-wrap">
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">Servicio (volumétrico)</label>
-              <select
-                className="appearance-none rounded-xl border px-3 py-2 shadow-sm bg-white"
-                value={service}
-                onChange={(e) => {
-                  const key = e.target.value as keyof typeof SERVICE_PRESETS;
-                  setService(key);
-                  const preset = SERVICE_PRESETS[key];
-                  if (typeof preset.divisor === "number") setDivisor(preset.divisor);
-                }}
-              >
-                {Object.keys(SERVICE_PRESETS).map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">Divisor (cm³/kg)</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                className={`rounded-xl border px-3 py-2 shadow-sm bg-white ${SERVICE_PRESETS[service].editable ? '' : 'opacity-50 cursor-not-allowed'}`}
-                value={divisor}
-                onChange={(e) => setDivisor(Number(e.target.value))}
-                disabled={!SERVICE_PRESETS[service].editable}
-                min={1}
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">Tarifa (precios)</label>
-              <select
-                className="appearance-none rounded-xl border px-3 py-2 shadow-sm bg-white"
-                value={tarifario.servicio}
-                onChange={(e) => {
-                  const key = e.target.value as keyof typeof TARIFAS | "(sin precio)";
-                  const s = (key in TARIFAS) ? TARIFAS[key as keyof typeof TARIFAS] : undefined;
-                  const firstAvailable = s ? Object.keys(s).find((k) => (s as any)[k]?.brackets?.length > 0) : "";
-                  setTarifario({ servicio: key, trayecto: firstAvailable || "" });
-                }}
-              >
-                {servicioKeys.map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-                <option value="(sin precio)">(sin precio)</option>
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">{tarifario.servicio.startsWith('INTERNACIONAL') ? 'País' : 'Trayecto / Zona'}</label>
-              <select
-                className="appearance-none rounded-xl border px-3 py-2 shadow-sm bg-white"
-                value={tarifario.trayecto}
-                onChange={(e) => setTarifario((t) => ({ ...t, trayecto: e.target.value }))}
-              >
-                {trayectoKeys.map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
-            </div>
-            <label className="inline-flex items-center gap-2 text-xs ml-auto">
-              <input type="checkbox" checked={redondeoEntero} onChange={(e) => setRedondeoEntero(e.target.checked)} />
-              Redondear peso facturable a kg entero (Nacional). Internacional ≤ 40 kg usa tabla exacta.
-            </label>
-          </div>
+    <div className="h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900">
+      <header className="z-10 backdrop-blur bg-white/80 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <h1 className="text-xl font-semibold tracking-tight">Calculadora volumétrica</h1>
+          <p className="text-[11px] text-slate-600">Dimensiones en centímetros (cm). Se cobra el mayor entre peso real y volumétrico.</p>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4">
-        <div className="mb-4 text-sm text-slate-500">
-          {SERVICE_PRESETS[service].note && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3">{SERVICE_PRESETS[service].note}</div>
-          )}
-          <div className="mt-2 text-slate-600">
-            <strong>Incrementos:</strong> Nacional desde <strong>15.01 kg</strong> (columna <em>Precio inc.</em>). Internacional desde <strong>40.01 kg</strong> (columna <em>Precio inc.</em> por país).
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 h-[calc(100vh-56px)] overflow-hidden">
+        <div className="grid h-full gap-3 lg:grid-cols-[360px_1fr]">
+          <div className="flex h-full flex-col gap-3">
+            <Card>
+              <CardHeader className="pb-1">
+                <CardTitle className="text-base">Parámetros</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 pt-2">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-medium text-muted-foreground">Servicio (volumétrico)</label>
+                <Select
+                  value={service}
+                  onValueChange={(value) => {
+                    setService(value);
+                    const preset = SERVICE_PRESETS[value];
+                    if (typeof preset.divisor === "number") setDivisor(preset.divisor);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(SERVICE_PRESETS).map((k) => (
+                      <SelectItem key={k} value={k}>{k}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-medium text-muted-foreground">Divisor (cm³/kg)</label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={divisor}
+                  onChange={(e) => setDivisor(Number(e.target.value))}
+                  disabled={!SERVICE_PRESETS[service].editable}
+                  min={1}
+                />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-medium text-muted-foreground">Tarifa (precios)</label>
+                <Select
+                  value={tarifario.servicio}
+                  onValueChange={(value) => {
+                    const s = (value in TARIFAS) ? TARIFAS[value] : undefined;
+                    const firstAvailable = s ? Object.keys(s).find((k) => s[k]?.brackets?.length > 0) : "";
+                    setTarifario({ servicio: value, trayecto: firstAvailable || "" });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {servicioKeys.map((k) => (
+                      <SelectItem key={k} value={k}>{k}</SelectItem>
+                    ))}
+                    <SelectItem value="(sin precio)">(sin precio)</SelectItem>
+                  </SelectContent>
+                </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-medium text-muted-foreground">{tarifario.servicio.startsWith('INTERNACIONAL') ? 'País' : 'Trayecto / Zona'}</label>
+                <Select
+                  value={tarifario.trayecto}
+                  onValueChange={(value) => setTarifario((t) => ({ ...t, trayecto: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {trayectoKeys.map((k) => (
+                      <SelectItem key={k} value={k}>{k}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={redondeoEntero}
+                      onCheckedChange={(value) => setRedondeoEntero(!!value)}
+                    />
+                    <span>Redondear peso facturable a kg entero (Nacional). Internacional ≤ 40 kg usa tabla exacta.</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-3 space-y-2 text-[11px] text-slate-600">
+                {SERVICE_PRESETS[service].note && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 text-amber-800 px-4 py-3">
+                    {SERVICE_PRESETS[service].note}
+                  </div>
+                )}
+                <div>
+                  <strong>Incrementos:</strong> Nacional desde <strong>15.01 kg</strong> (columna <em>Precio inc.</em>). Internacional desde <strong>40.01 kg</strong> (columna <em>Precio inc.</em> por país).
+                </div>
+              </CardContent>
+            </Card>
+
+            <section className="grid grid-cols-3 gap-2">
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Total volumétrico</div>
+                  <div className="text-base font-semibold tabular-nums">{totals.totalVol.toFixed(2)} kg</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Total real</div>
+                  <div className="text-base font-semibold tabular-nums">{totals.totalReal.toFixed(2)} kg</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Total a cobrar</div>
+                  <div className="text-base font-semibold tabular-nums">{totals.totalFact.toFixed(2)} €</div>
+                </CardContent>
+              </Card>
+            </section>
+
+            <Card>
+              <CardHeader className="pb-1">
+                <CardTitle className="text-base">Guía visual de dimensiones</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-[11px] text-muted-foreground mb-2">Se muestran las medidas del <strong>bloque optimizado</strong> de la primera fila. Al aumentar la cantidad, solo crece el <strong>Ancho</strong>.</p>
+                <svg viewBox="0 0 400 240" className="w-full max-w-[240px]">
+                {/* Cara frontal */}
+                <polygon points={pointsFront} fill="#e2e8f0" stroke="#334155" />
+                {/* Cara superior */}
+                <polygon points={pointsTop} fill="#cbd5e1" stroke="#334155" />
+                {/* Cara lateral */}
+                <polygon points={pointsSide} fill="#94a3b8" stroke="#334155" />
+
+                {/* Flecha LARGO */}
+                <line x1={x0} y1={y0 + 16} x2={x0 + w} y2={y0 + 16} stroke="#0f172a" markerEnd={'url(#arrow)'} markerStart={'url(#arrow)'} />
+                <text x={x0 + w / 2} y={y0 + 28} textAnchor="middle" fontSize="12" fill="#0f172a">Largo (L)</text>
+
+                {/* Flecha ALTO */}
+                <line x1={x0 - 16} y1={y0} x2={x0 - 16} y2={y0 - h} stroke="#0f172a" markerEnd={'url(#arrow)'} markerStart={'url(#arrow)'} />
+                <text x={x0 - 20} y={y0 - h / 2} textAnchor="end" dominantBaseline="middle" fontSize="12" fill="#0f172a">Alto (H)</text>
+
+                {/* Flecha ANCHO */}
+                <line x1={x0 + w + 10} y1={y0} x2={x0 + w + dx + 10} y2={y0 + dy} stroke="#0f172a" markerEnd={'url(#arrow)'} markerStart={'url(#arrow)'} />
+                <text x={x0 + w + dx + 16} y={y0 + dy - 4} fontSize="12" fill="#0f172a">Ancho (A)</text>
+
+                <defs>
+                  <marker id="arrow" orient="auto" markerWidth={6} markerHeight={6} refX={5} refY={3}>
+                    <path d="M0,0 L6,3 L0,6 Z" fill="#0f172a" />
+                  </marker>
+                </defs>
+                </svg>
+                <div className="mt-2 text-[11px] text-muted-foreground">
+                  <span className="inline-block mr-4">Largo ≈ {Lnum}{typeof first.largo === 'number' ? ' cm' : ''}</span>
+                  <span className="inline-block mr-4">Ancho ≈ {Anum}{typeof first.ancho === 'number' ? ' cm' : ''}</span>
+                  <span className="inline-block">Alto ≈ {Hnum}{typeof first.alto === 'number' ? ' cm' : ''}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex h-full flex-col gap-3">
+            <Card className="flex-1">
+              <CardHeader className="pb-1">
+                <CardTitle className="text-base">Detalle por fila</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table className="text-[11px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Largo (cm)</TableHead>
+                  <TableHead>Ancho (cm)</TableHead>
+                  <TableHead>Alto (cm)</TableHead>
+                  <TableHead>Peso real (kg)</TableHead>
+                  <TableHead>Cantidad</TableHead>
+                  <TableHead>Volumétrico total (kg)</TableHead>
+                  <TableHead>Real total (kg)</TableHead>
+                  <TableHead>Facturable total (kg)</TableHead>
+                  <TableHead>Bloque optimizado (cm)</TableHead>
+                  <TableHead>Precio línea (€)</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {packages.map((p, i) => {
+                  const row = rows[i] || {};
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        <Input className="h-7 text-[11px]" type="number" inputMode="decimal" value={p.largo} onChange={(e) => updatePkg(p.id, 'largo', e.target.value)} placeholder="0" min={0} />
+                      </TableCell>
+                      <TableCell>
+                        <Input className="h-7 text-[11px]" type="number" inputMode="decimal" value={p.ancho} onChange={(e) => updatePkg(p.id, 'ancho', e.target.value)} placeholder="0" min={0} />
+                      </TableCell>
+                      <TableCell>
+                        <Input className="h-7 text-[11px]" type="number" inputMode="decimal" value={p.alto} onChange={(e) => updatePkg(p.id, 'alto', e.target.value)} placeholder="0" min={0} />
+                      </TableCell>
+                      <TableCell>
+                        <Input className="h-7 text-[11px]" type="number" inputMode="decimal" value={p.pesoReal} onChange={(e) => updatePkg(p.id, 'pesoReal', e.target.value)} placeholder="0" min={0} />
+                      </TableCell>
+                      <TableCell>
+                        <Input className="h-7 text-[11px]" type="number" inputMode="numeric" value={p.cantidad} onChange={(e) => updatePkg(p.id, 'cantidad', e.target.value)} placeholder="1" min={1} />
+                      </TableCell>
+                      <TableCell className="tabular-nums">{isNaN(row.volumetricTotal) ? "–" : row.volumetricTotal.toFixed(2)}</TableCell>
+                      <TableCell className="tabular-nums">{isNaN(row.realTotal) ? "–" : row.realTotal.toFixed(2)}</TableCell>
+                      <TableCell className="tabular-nums">{isNaN(row.facturableTotal) ? "–" : row.facturableTotal.toFixed(2)}</TableCell>
+                      <TableCell className="tabular-nums">{row.dimsOpt ? `${row.dimsOpt[0]}×${row.dimsOpt[1]}×${row.dimsOpt[2]}` : "–"}</TableCell>
+                      <TableCell className="font-medium tabular-nums">{row.precioLinea == null || isNaN(row.precioLinea) ? "–" : row.precioLinea.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => removeRow(p.id)}>Eliminar</Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-wrap gap-2 items-center">
+          <Button size="sm" onClick={addRow}>Añadir fila</Button>
+          <Button size="sm" variant="outline" onClick={clearAll}>Limpiar</Button>
+
+          <div className="ml-auto">
+            <Card>
+              <CardContent className="py-2">
+                <div className="text-xs font-medium text-muted-foreground">Resumen tarifa</div>
+                <div className="text-[11px]">{tarifario.servicio} · {tarifario.trayecto}</div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-        <div className="overflow-x-auto rounded-2xl border shadow-sm">
-          <table className="w-full text-left">
-            <thead className="bg-slate-100 text-slate-700 text-sm">
-              <tr>
-                <th className="py-3 px-4">Largo (cm)</th>
-                <th className="py-3 px-4">Ancho (cm)</th>
-                <th className="py-3 px-4">Alto (cm)</th>
-                <th className="py-3 px-4">Peso real (kg)</th>
-                <th className="py-3 px-4">Cantidad</th>
-                <th className="py-3 px-4">Volumétrico total (kg)</th>
-                <th className="py-3 px-4">Real total (kg)</th>
-                <th className="py-3 px-4">Facturable total (kg)</th>
-                <th className="py-3 px-4">Bloque optimizado (cm)</th>
-                <th className="py-3 px-4">Precio línea (€)</th>
-                <th className="py-3 px-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {packages.map((p, i) => (
-                <tr key={p.id} className="odd:bg-white even:bg-slate-50">
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.largo} onChange={(e) => updatePkg(p.id, 'largo', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.ancho} onChange={(e) => updatePkg(p.id, 'ancho', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.alto} onChange={(e) => updatePkg(p.id, 'alto', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.pesoReal} onChange={(e) => updatePkg(p.id, 'pesoReal', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
-                  <td className="py-2 px-4"><input type="number" inputMode="numeric" value={p.cantidad} onChange={(e) => updatePkg(p.id, 'cantidad', e.target.value)} className="w-24 border rounded-lg px-2 py-1" placeholder="1" min={1} /></td>
-                  <td className="py-2 px-4 tabular-nums">{isNaN((rows[i] as any).volumetricTotal) ? "–" : (rows[i] as any).volumetricTotal.toFixed(2)}</td>
-                  <td className="py-2 px-4 tabular-nums">{isNaN((rows[i] as any).realTotal) ? "–" : (rows[i] as any).realTotal.toFixed(2)}</td>
-                  <td className="py-2 px-4 tabular-nums">{isNaN((rows[i] as any).facturableTotal) ? "–" : (rows[i] as any).facturableTotal.toFixed(2)}</td>
-                  <td className="py-2 px-4 tabular-nums">{(rows[i] as any).dimsOpt ? `${(rows[i] as any).dimsOpt[0]}×${(rows[i] as any).dimsOpt[1]}×${(rows[i] as any).dimsOpt[2]}` : "–"}</td>
-                  <td className="py-2 px-4 font-medium tabular-nums">{(rows[i] as any).precioLinea == null || isNaN((rows[i] as any).precioLinea) ? "–" : (rows[i] as any).precioLinea.toFixed(2)}</td>
-                  <td className="py-2 px-4 text-right"><button onClick={() => removeRow(p.id)} className="text-sm text-rose-600 hover:underline">Eliminar</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="flex flex-wrap gap-3 mt-4 items-center">
-          <button onClick={addRow} className="px-4 py-2 rounded-xl bg-slate-900 text-white shadow hover:opacity-90">Añadir fila</button>
-          <button onClick={clearAll} className="px-4 py-2 rounded-xl border bg-white shadow-sm hover:bg-slate-50">Limpiar</button>
-
-          <div className="ml-auto flex flex-wrap gap-3 items-end">
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-slate-600">Resumen tarifa</label>
-              <div className="text-sm text-slate-700 bg-slate-50 border rounded-xl px-3 py-2">{tarifario.servicio} · {tarifario.trayecto}</div>
-            </div>
           </div>
         </div>
-
-        <section className="grid sm:grid-cols-3 gap-4 mt-6">
-          <div className="rounded-2xl border p-4 bg-white shadow-sm">
-            <div className="text-xs uppercase tracking-wide text-slate-500">Total volumétrico</div>
-            <div className="text-2xl font-semibold tabular-nums">{totals.totalVol.toFixed(2)} kg</div>
-          </div>
-          <div className="rounded-2xl border p-4 bg-white shadow-sm">
-            <div className="text-xs uppercase tracking-wide text-slate-500">Total real</div>
-            <div className="text-2xl font-semibold tabular-nums">{totals.totalReal.toFixed(2)} kg</div>
-          </div>
-          <div className="rounded-2xl border p-4 bg-white shadow-sm">
-            <div className="text-xs uppercase tracking-wide text-slate-500">Total a cobrar</div>
-            <div className="text-2xl font-semibold tabular-nums">{totals.totalFact.toFixed(2)} €</div>
-          </div>
-        </section>
-
-        {/* Guía visual de dimensiones (Largo, Ancho, Alto) */}
-        <section className="mt-8 p-4 border rounded-xl bg-white">
-          <h2 className="font-semibold mb-2">Guía visual de dimensiones</h2>
-          <p className="text-sm text-slate-600 mb-3">Se muestran las medidas del <strong>bloque optimizado</strong> de la primera fila. Al aumentar la cantidad, solo crece el <strong>Ancho</strong>.</p>
-          <svg viewBox="0 0 400 240" className="w-full max-w-xl">
-            {/* Cara frontal */}
-            <polygon points={pointsFront} fill="#e2e8f0" stroke="#334155" />
-            {/* Cara superior */}
-            <polygon points={pointsTop} fill="#cbd5e1" stroke="#334155" />
-            {/* Cara lateral */}
-            <polygon points={pointsSide} fill="#94a3b8" stroke="#334155" />
-
-            {/* Flecha LARGO */}
-            <line x1={x0} y1={y0 + 16} x2={x0 + w} y2={y0 + 16} stroke="#0f172a" markerEnd={'url(#arrow)'} markerStart={'url(#arrow)'} />
-            <text x={x0 + w / 2} y={y0 + 28} textAnchor="middle" fontSize="12" fill="#0f172a">Largo (L)</text>
-
-            {/* Flecha ALTO */}
-            <line x1={x0 - 16} y1={y0} x2={x0 - 16} y2={y0 - h} stroke="#0f172a" markerEnd={'url(#arrow)'} markerStart={'url(#arrow)'} />
-            <text x={x0 - 20} y={y0 - h / 2} textAnchor="end" dominantBaseline="middle" fontSize="12" fill="#0f172a">Alto (H)</text>
-
-            {/* Flecha ANCHO */}
-            <line x1={x0 + w + 10} y1={y0} x2={x0 + w + dx + 10} y2={y0 + dy} stroke="#0f172a" markerEnd={'url(#arrow)'} markerStart={'url(#arrow)'} />
-            <text x={x0 + w + dx + 16} y={y0 + dy - 4} fontSize="12" fill="#0f172a">Ancho (A)</text>
-
-            <defs>
-              <marker id="arrow" orient="auto" markerWidth={6} markerHeight={6} refX={5} refY={3}>
-                <path d="M0,0 L6,3 L0,6 Z" fill="#0f172a" />
-              </marker>
-            </defs>
-          </svg>
-          <div className="mt-3 text-sm text-slate-600">
-            <span className="inline-block mr-4">Largo ≈ {Lnum}{typeof first.largo === 'number' ? ' cm' : ''}</span>
-            <span className="inline-block mr-4">Ancho ≈ {Anum}{typeof first.ancho === 'number' ? ' cm' : ''}</span>
-            <span className="inline-block">Alto ≈ {Hnum}{typeof first.alto === 'number' ? ' cm' : ''}</span>
-          </div>
-        </section>
       </main>
     </div>
   );
