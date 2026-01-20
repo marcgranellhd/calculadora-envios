@@ -506,11 +506,11 @@ export default function GLSVolumetricCalculator() {
     return { vol: Lb * Ab * Hb, arrangement: [nL, nA, nH], dims: [Lb, Ab, Hb] };
   };
 
-  const updatePkg = (id: string, field: keyof Package, v: string) => {
+  const updatePkg = (id, field, v) => {
     setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: v === "" ? "" : Number(v) } : p)));
   };
   const addRow = () => setPackages((prev) => [...prev, { id: niceId(), largo: "", ancho: "", alto: "", pesoReal: "", cantidad: 1 }]);
-  const removeRow = (id: string) => setPackages((prev) => prev.filter((p) => p.id !== id));
+  const removeRow = (id) => setPackages((prev) => prev.filter((p) => p.id !== id));
   const clearAll = () => setPackages([{ id: niceId(), largo: "", ancho: "", alto: "", pesoReal: "", cantidad: 1 }]);
 
   const rows = useMemo(() => {
