@@ -3,7 +3,7 @@ FROM node:18-alpine as build
 WORKDIR /app
 ENV NPM_CONFIG_PRODUCTION=false
 COPY package*.json ./
-RUN if [ -f package-lock.json ]; then npm ci --include=dev || npm install --include=dev --legacy-peer-deps; else npm install --include=dev --legacy-peer-deps; fi
+RUN npm install --include=dev --legacy-peer-deps
 COPY . ./
 RUN npm run build
 
