@@ -1,6 +1,14 @@
 version: '3.8'
+
 services:
-  web:
+  calculadora-envios:
     build: .
+    container_name: calculadora-envios-gls
     ports:
-      - "46070:80"
+      - "46070:46070"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
