@@ -934,22 +934,16 @@ export default function GLSVolumetricCalculator() {
             <div className="flex flex-col lg:flex-row gap-6 items-center">
               <div className="flex-1 max-w-md">
                 <svg viewBox="0 0 400 240" className="w-full">
-                  {/* Cara frontal */}
                   <polygon points={pointsFront} fill="#e2e8f0" stroke="#334155" strokeWidth="2" />
-                  {/* Cara superior */}
                   <polygon points={pointsTop} fill="#cbd5e1" stroke="#334155" strokeWidth="2" />
-                  {/* Cara lateral */}
                   <polygon points={pointsSide} fill="#94a3b8" stroke="#334155" strokeWidth="2" />
 
-                  {/* Flecha LARGO */}
                   <line x1={x0} y1={y0 + 16} x2={x0 + w} y2={y0 + 16} stroke="#0f172a" strokeWidth="2" markerEnd={'url(#arrow)'} markerStart={'url(#arrow)'} />
                   <text x={x0 + w / 2} y={y0 + 32} textAnchor="middle" fontSize="14" fontWeight="bold" fill="#0f172a">Largo (L)</text>
 
-                  {/* Flecha ALTO */}
                   <line x1={x0 - 16} y1={y0} x2={x0 - 16} y2={y0 - h} stroke="#0f172a" strokeWidth="2" markerEnd={'url(#arrow)'} markerStart={'url(#arrow)'} />
                   <text x={x0 - 24} y={y0 - h / 2} textAnchor="end" dominantBaseline="middle" fontSize="14" fontWeight="bold" fill="#0f172a">Alto (H)</text>
 
-                  {/* Flecha ANCHO */}
                   <line x1={x0 + w + 10} y1={y0} x2={x0 + w + dx + 10} y2={y0 + dy} stroke="#0f172a" strokeWidth="2" markerEnd={'url(#arrow)'} markerStart={'url(#arrow)'} />
                   <text x={x0 + w + dx + 20} y={y0 + dy - 4} fontSize="14" fontWeight="bold" fill="#0f172a">Ancho (A)</text>
 
