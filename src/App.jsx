@@ -802,7 +802,6 @@ export default function GLSVolumetricCalculator() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-              <tbody className="divide-y divide-slate-100">
                 {packages.map((p, i) => (
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-3 px-4">
