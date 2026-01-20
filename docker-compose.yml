@@ -6,13 +6,6 @@ services:
     container_name: calculadora-envios-gls
     ports:
       - "46070:46070"
-    volumes:
-      - .:/app
-      - /app/node_modules
     environment:
-      - NODE_ENV=development
-      - VITE_HOST=0.0.0.0
-      - VITE_PORT=46070
+      - NODE_ENV=production
     restart: unless-stopped
-    stdin_open: true
-    tty: true
