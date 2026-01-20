@@ -9,24 +9,10 @@ import React, { useEffect, useMemo, useState } from "react";
 // - Totales y guía visual (SVG) al final
 
 export default function GLSVolumetricCalculator() {
-  // Tipos
-  type Package = {
-    id: string;
-    largo: number | "";
-    ancho: number | "";
-    alto: number | "";
-    pesoReal: number | "";
-    cantidad: number | "";
-  };
-  type Bracket = { hasta: number; precio: number };
-  type Overflow = { desde: number; base: number; pasoKg: number; incPrecio: number };
-  type TrayectoTarifa = { nombre: string; brackets: Bracket[]; overflow?: Overflow };
-  type ServicioTarifa = Record<string, TrayectoTarifa>;
-
   // ======================
   // Tarifas (ejemplo parcial; puedes ampliarlas según el PDF)
   // ======================
-  const TARIFAS: Record<string, ServicioTarifa> = {
+  const TARIFAS = {
   // Nacional
   "EXPRESS 10:30": {
     PENINSULAR: {
@@ -457,10 +443,10 @@ export default function GLSVolumetricCalculator() {
   const niceId = () => Math.random().toString(36).slice(2, 9);
   const [service, setService] = useState<keyof typeof SERVICE_PRESETS>("Nacional (según contrato)");
   const [divisor, setDivisor] = useState<number>(SERVICE_PRESETS["Nacional (según contrato)"].divisor);
-  const [packages, setPackages] = useState<Package[]>([
+  const [packages, setPackages] = useState([
     { id: niceId(), largo: "", ancho: "", alto: "", pesoReal: "", cantidad: 1 },
   ]);
-  const [tarifario, setTarifario] = useState<{ servicio: keyof typeof TARIFAS | "(sin precio)"; trayecto: string }>(
+  const [tarifario, setTarifario] = useState(
   { servicio: "INTERNACIONAL", trayecto: "ALEMANIA" }
 );
   const [redondeoEntero, setRedondeoEntero] = useState(true);
@@ -468,15 +454,15 @@ export default function GLSVolumetricCalculator() {
   // ======================
   // Helpers
   // ======================
-  const getTarifaActual = (): TrayectoTarifa | null => {
-    const s = TARIFAS[tarifario.servicio as keyof typeof TARIFAS];
+  const getTarifaActual = () => {
+    const s = TARIFAS[tarifario.servicio];
     if (!s) return null;
     return s[tarifario.trayecto];
   };
 
   // Cálculo de precio: Internacional ≤ 40 kg usa tabla exacta (sin incremento), > 40 kg overflow por kg.
   // Nacional: usa redondeo opcional a entero y overflow desde 15.01 kg.
-  const calcularPrecio = (peso: number, tarifa: TrayectoTarifa | null, round = redondeoEntero): number | null => {
+  const calcularPrecio = (peso, tarifa, round = redondeoEntero) => {
   if (!tarifa || !isFinite(peso)) return null;
   const isIntl = tarifario.servicio.toString().startsWith("INTERNACIONAL");
 
@@ -509,12 +495,7 @@ export default function GLSVolumetricCalculator() {
 };
 
   // Apilado RESTRINGIDO: solo crece el ANCHO con la cantidad
-  const packPreferAncho = (
-    l: number,
-    a: number,
-    h: number,
-    q: number
-  ): { vol: number; arrangement: [number, number, number]; dims: [number, number, number] } => {
+  const packPreferAncho = (l, a, h, q) => {
     const Q = Math.max(1, Math.ceil(q));
     const nA = Q; // todo en profundidad
     const nL = 1; // largo fijo
