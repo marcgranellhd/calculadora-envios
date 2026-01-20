@@ -709,8 +709,6 @@ export default function GLSVolumetricCalculator() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         
         {/* Resumen de totales - Primero para mejor visibilidad */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
