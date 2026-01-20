@@ -435,14 +435,14 @@ export default function GLSVolumetricCalculator() {
     "Internacional Express (avión)": { divisor: 5000, editable: false, note: "m3→200 kg ⇒ 1e6/200 = 5000" },
     "Internacional Economy (carretera)": { divisor: 4000, editable: false, note: "m3→250 kg ⇒ 1e6/250 = 4000" },
     Personalizado: { divisor: 6000, editable: true },
-  } as const;
+  };
 
   // ======================
   // Estado
   // ======================
   const niceId = () => Math.random().toString(36).slice(2, 9);
-  const [service, setService] = useState<keyof typeof SERVICE_PRESETS>("Nacional (según contrato)");
-  const [divisor, setDivisor] = useState<number>(SERVICE_PRESETS["Nacional (según contrato)"].divisor);
+  const [service, setService] = useState("Nacional (según contrato)");
+  const [divisor, setDivisor] = useState(SERVICE_PRESETS["Nacional (según contrato)"].divisor);
   const [packages, setPackages] = useState([
     { id: niceId(), largo: "", ancho: "", alto: "", pesoReal: "", cantidad: 1 },
   ]);
@@ -518,14 +518,14 @@ export default function GLSVolumetricCalculator() {
     return packages.map((p) => {
       const validDims = [p.largo, p.ancho, p.alto].every((n) => typeof n === "number" && n > 0);
       const validQty = typeof p.cantidad === "number" && p.cantidad > 0;
-      const q = validQty ? (p.cantidad as number) : NaN;
-      const realUnit = typeof p.pesoReal === "number" && p.pesoReal >= 0 ? (p.pesoReal as number) : NaN;
+      const q = validQty ? p.cantidad : NaN;
+      const realUnit = typeof p.pesoReal === "number" && p.pesoReal >= 0 ? p.pesoReal : NaN;
 
       let volKgTotal = NaN;
-      let dimsOpt: [number, number, number] | null = null;
-      let arr: [number, number, number] | null = null;
+      let dimsOpt = null;
+      let arr = null;
       if (validDims && divisor > 0 && validQty) {
-        const L = p.largo as number, A = p.ancho as number, H = p.alto as number;
+        const L = p.largo, A = p.ancho, H = p.alto;
         const packed = packPreferAncho(L, A, H, q);
         volKgTotal = packed.vol / divisor;
         dimsOpt = packed.dims;
@@ -535,25 +535,25 @@ export default function GLSVolumetricCalculator() {
       const realTotal = (!isNaN(realUnit) && !isNaN(q)) ? realUnit * q : NaN;
       const facturableTotal = (isNaN(volKgTotal) && isNaN(realTotal)) ? NaN : Math.max(isNaN(realTotal) ? 0 : realTotal, isNaN(volKgTotal) ? 0 : volKgTotal);
       const precioLinea = calcularPrecio(facturableTotal, tarifa);
-      const totalLinea = (precioLinea != null && !isNaN(facturableTotal)) ? (precioLinea as number) : NaN;
+      const totalLinea = (precioLinea != null && !isNaN(facturableTotal)) ? precioLinea : NaN;
 
-      return { ...p, volumetricTotal: volKgTotal, realTotal, facturableTotal, precioLinea, totalLinea, dimsOpt, arr } as any;
+      return { ...p, volumetricTotal: volKgTotal, realTotal, facturableTotal, precioLinea, totalLinea, dimsOpt, arr };
     });
   }, [packages, divisor, tarifario, redondeoEntero]);
 
   const totals = useMemo(() => {
-    const totalVol = rows.reduce((acc: number, r: any) => acc + (isNaN(r.volumetricTotal) ? 0 : (r.volumetricTotal as number)), 0);
-    const totalReal = rows.reduce((acc: number, r: any) => acc + (isNaN(r.realTotal) ? 0 : (r.realTotal as number)), 0);
-    const totalFact = rows.reduce((acc: number, r: any) => acc + (isNaN(r.totalLinea) ? 0 : (r.totalLinea as number)), 0);
+    const totalVol = rows.reduce((acc, r) => acc + (isNaN(r.volumetricTotal) ? 0 : r.volumetricTotal), 0);
+    const totalReal = rows.reduce((acc, r) => acc + (isNaN(r.realTotal) ? 0 : r.realTotal), 0);
+    const totalFact = rows.reduce((acc, r) => acc + (isNaN(r.totalLinea) ? 0 : r.totalLinea), 0);
     return { totalVol, totalReal, totalFact };
   }, [rows]);
 
-  const servicioKeys = Object.keys(TARIFAS) as (keyof typeof TARIFAS)[];
+  const servicioKeys = Object.keys(TARIFAS);
   const trayectoKeys = useMemo(() => {
-    const s = TARIFAS[tarifario.servicio as keyof typeof TARIFAS];
+    const s = TARIFAS[tarifario.servicio];
     if (!s) return [];
     return Object.keys(s).filter((k) => {
-      const t = (s as any)[k] as TrayectoTarifa;
+      const t = s[k];
       return Array.isArray(t?.brackets) && t.brackets.length > 0;
     });
   }, [tarifario.servicio]);
@@ -562,7 +562,7 @@ export default function GLSVolumetricCalculator() {
   // Tests rápidos (consola)
   // ======================
   useEffect(() => {
-  const eq = (a: number | null, b: number, eps = 1e-6) => a != null && Math.abs((a as number) - b) < eps;
+  const eq = (a, b, eps = 1e-6) => a != null && Math.abs(a - b) < eps;
   // Nacional
   console.assert(eq(calcularPrecio(14, TARIFAS["EXPRESS 19:00"].PENINSULAR, true), 8.65), "EXPRESS 19:00 14 kg = 8.65");
   console.assert(eq(calcularPrecio(16, TARIFAS["EXPRESS 19:00"].PENINSULAR, true), 9.08), "EXPRESS 19:00 16 kg = 9.08");
@@ -580,8 +580,8 @@ export default function GLSVolumetricCalculator() {
   // Render (UI completa)
   // ======================
   // Dimensiones para el diagrama: usar el BLOQUE OPTIMIZADO de la primera fila
-  const first: any = rows[0] || ({} as any);
-  const dimsBlock: [number, number, number] | null = first?.dimsOpt || null; // [Lopt, Aopt, Hopt]
+  const first = rows[0] || {};
+  const dimsBlock = first?.dimsOpt || null; // [Lopt, Aopt, Hopt]
   const Lnum = dimsBlock ? dimsBlock[0] : (Number(first.largo) > 0 ? Number(first.largo) : 30);
   const Anum = dimsBlock ? dimsBlock[1] : (Number(first.ancho) > 0 ? Number(first.ancho) : 20);
   const Hnum = dimsBlock ? dimsBlock[2] : (Number(first.alto)  > 0 ? Number(first.alto)  : 15);
@@ -613,7 +613,7 @@ export default function GLSVolumetricCalculator() {
                 className="appearance-none rounded-xl border px-3 py-2 shadow-sm bg-white"
                 value={service}
                 onChange={(e) => {
-                  const key = e.target.value as keyof typeof SERVICE_PRESETS;
+                  const key = e.target.value;
                   setService(key);
                   const preset = SERVICE_PRESETS[key];
                   if (typeof preset.divisor === "number") setDivisor(preset.divisor);
@@ -642,9 +642,9 @@ export default function GLSVolumetricCalculator() {
                 className="appearance-none rounded-xl border px-3 py-2 shadow-sm bg-white"
                 value={tarifario.servicio}
                 onChange={(e) => {
-                  const key = e.target.value as keyof typeof TARIFAS | "(sin precio)";
-                  const s = (key in TARIFAS) ? TARIFAS[key as keyof typeof TARIFAS] : undefined;
-                  const firstAvailable = s ? Object.keys(s).find((k) => (s as any)[k]?.brackets?.length > 0) : "";
+                  const key = e.target.value;
+                  const s = (key in TARIFAS) ? TARIFAS[key] : undefined;
+                  const firstAvailable = s ? Object.keys(s).find((k) => s[k]?.brackets?.length > 0) : "";
                   setTarifario({ servicio: key, trayecto: firstAvailable || "" });
                 }}
               >
@@ -709,11 +709,11 @@ export default function GLSVolumetricCalculator() {
                   <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.alto} onChange={(e) => updatePkg(p.id, 'alto', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
                   <td className="py-2 px-4"><input type="number" inputMode="decimal" value={p.pesoReal} onChange={(e) => updatePkg(p.id, 'pesoReal', e.target.value)} className="w-full border rounded-lg px-2 py-1" placeholder="0" min={0} /></td>
                   <td className="py-2 px-4"><input type="number" inputMode="numeric" value={p.cantidad} onChange={(e) => updatePkg(p.id, 'cantidad', e.target.value)} className="w-24 border rounded-lg px-2 py-1" placeholder="1" min={1} /></td>
-                  <td className="py-2 px-4 tabular-nums">{isNaN((rows[i] as any).volumetricTotal) ? "–" : (rows[i] as any).volumetricTotal.toFixed(2)}</td>
-                  <td className="py-2 px-4 tabular-nums">{isNaN((rows[i] as any).realTotal) ? "–" : (rows[i] as any).realTotal.toFixed(2)}</td>
-                  <td className="py-2 px-4 tabular-nums">{isNaN((rows[i] as any).facturableTotal) ? "–" : (rows[i] as any).facturableTotal.toFixed(2)}</td>
-                  <td className="py-2 px-4 tabular-nums">{(rows[i] as any).dimsOpt ? `${(rows[i] as any).dimsOpt[0]}×${(rows[i] as any).dimsOpt[1]}×${(rows[i] as any).dimsOpt[2]}` : "–"}</td>
-                  <td className="py-2 px-4 font-medium tabular-nums">{(rows[i] as any).precioLinea == null || isNaN((rows[i] as any).precioLinea) ? "–" : (rows[i] as any).precioLinea.toFixed(2)}</td>
+                  <td className="py-2 px-4 tabular-nums">{isNaN(rows[i].volumetricTotal) ? "–" : rows[i].volumetricTotal.toFixed(2)}</td>
+                  <td className="py-2 px-4 tabular-nums">{isNaN(rows[i].realTotal) ? "–" : rows[i].realTotal.toFixed(2)}</td>
+                  <td className="py-2 px-4 tabular-nums">{isNaN(rows[i].facturableTotal) ? "–" : rows[i].facturableTotal.toFixed(2)}</td>
+                  <td className="py-2 px-4 tabular-nums">{rows[i].dimsOpt ? `${rows[i].dimsOpt[0]}×${rows[i].dimsOpt[1]}×${rows[i].dimsOpt[2]}` : "–"}</td>
+                  <td className="py-2 px-4 font-medium tabular-nums">{rows[i].precioLinea == null || isNaN(rows[i].precioLinea) ? "–" : rows[i].precioLinea.toFixed(2)}</td>
                   <td className="py-2 px-4 text-right"><button onClick={() => removeRow(p.id)} className="text-sm text-rose-600 hover:underline">Eliminar</button></td>
                 </tr>
               ))}
