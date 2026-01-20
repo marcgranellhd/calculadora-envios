@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-// Calculadora volumétrica GLS — envío consolidado (UI completa)
+// Calculadora volumétrica — envío consolidado (UI completa)
 // - Consolida cada fila como un SOLO envío con apilado restringido: SOLO crece el ANCHO por cantidad
 // - Muestra dimensiones del bloque optimizado (L×A×H)
 // - Selector de servicio (divisor), tarifa (nacional/internacional) y país/zona
@@ -8,7 +8,7 @@ import React, { useEffect, useMemo, useState } from "react";
 // - Incrementos: nacional desde 15.01 kg, internacional desde 40.01 kg
 // - Totales y guía visual (SVG) al final
 
-export default function GLSVolumetricCalculator() {
+export default function VolumetricCalculator() {
   // ======================
   // Tarifas (ejemplo parcial; puedes ampliarlas según el PDF)
   // ======================
@@ -632,7 +632,7 @@ export default function GLSVolumetricCalculator() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">
-                Calculadora GLS
+                Calculadora de envíos
               </h1>
               <p className="text-sm text-slate-600 mt-1">Cálculo de peso volumétrico y tarifas de envío</p>
             </div>

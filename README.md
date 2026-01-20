@@ -1,6 +1,6 @@
-# Calculadora de Envíos GLS
+# Calculadora de Envíos
 
-Aplicación React para calcular costos de envíos con GLS.
+Aplicación React para calcular costos de envíos.
 
 ## Despliegue en Portainer
 
@@ -16,10 +16,10 @@ Aplicación React para calcular costos de envíos con GLS.
 
 ```bash
 # Construir la imagen
-docker build -t calculadora-envios-gls .
+docker build -t calculadora-envios .
 
 # Ejecutar el contenedor
-docker run -d -p 46070:46070 --name calculadora-envios-gls calculadora-envios-gls
+docker run -d -p 46070:46070 --name calculadora-envios calculadora-envios
 ```
 
 ### Opción 3: Desarrollo local
