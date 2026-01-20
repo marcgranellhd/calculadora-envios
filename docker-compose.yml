@@ -2,10 +2,13 @@ version: '3.8'
 
 services:
   calculadora-envios:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     container_name: calculadora-envios-gls
     ports:
       - "46070:46070"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
     restart: unless-stopped
+    command: npm run dev
