@@ -988,6 +988,9 @@ export default function GLSVolumetricCalculator() {
                 </div>
               </div>
             </div>
-
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
