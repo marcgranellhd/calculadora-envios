@@ -7,16 +7,14 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 46070,
     strictPort: true,
-    allowedHosts: [
-      'calculadora.marcgrabel.cc',
-      '.marcgrabel.cc'
-    ],
+    allowedHosts: 'all',
     watch: {
       usePolling: true
     },
     hmr: {
-      host: '0.0.0.0',
-      port: 46070
+      clientPort: 443,
+      protocol: 'wss',
+      host: 'calculadora.marcgrabel.cc'
     }
   }
 })
