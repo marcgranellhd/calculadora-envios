@@ -541,12 +541,38 @@ export default function GLSVolumetricCalculator() {
     });
   }, [packages, divisor, tarifario, redondeoEntero]);
 
+  const combined = useMemo(() => {
+    const tarifa = getTarifaActual();
+    const valid = rows.filter((r) => Array.isArray(r.dimsOpt));
+    if (valid.length === 0) {
+      return { dims: null, volKg: NaN, realTotal: NaN, facturable: NaN, precio: NaN };
+    }
+
+    const totalWidth = valid.reduce((acc, r) => acc + (r.dimsOpt?.[1] || 0), 0);
+    const maxLength = Math.max(...valid.map((r) => r.dimsOpt?.[0] || 0));
+    const maxHeight = Math.max(...valid.map((r) => r.dimsOpt?.[2] || 0));
+
+    const volKg = divisor > 0 ? (maxLength * totalWidth * maxHeight) / divisor : NaN;
+    const realTotal = valid.reduce((acc, r) => acc + (isNaN(r.realTotal) ? 0 : r.realTotal), 0);
+    const facturable = (isNaN(volKg) && isNaN(realTotal)) ? NaN : Math.max(isNaN(realTotal) ? 0 : realTotal, isNaN(volKg) ? 0 : volKg);
+    const precio = calcularPrecio(facturable, tarifa);
+
+    return {
+      dims: [maxLength, totalWidth, maxHeight],
+      volKg,
+      realTotal,
+      facturable,
+      precio: precio == null ? NaN : precio,
+    };
+  }, [rows, divisor, tarifario, redondeoEntero]);
+
   const totals = useMemo(() => {
-    const totalVol = rows.reduce((acc, r) => acc + (isNaN(r.volumetricTotal) ? 0 : r.volumetricTotal), 0);
-    const totalReal = rows.reduce((acc, r) => acc + (isNaN(r.realTotal) ? 0 : r.realTotal), 0);
-    const totalFact = rows.reduce((acc, r) => acc + (isNaN(r.totalLinea) ? 0 : r.totalLinea), 0);
-    return { totalVol, totalReal, totalFact };
-  }, [rows]);
+    return {
+      totalVol: combined.volKg,
+      totalReal: combined.realTotal,
+      totalFact: combined.precio,
+    };
+  }, [combined]);
 
   const servicioKeys = Object.keys(TARIFAS);
   const trayectoKeys = useMemo(() => {
@@ -579,9 +605,9 @@ export default function GLSVolumetricCalculator() {
   // ======================
   // Render (UI completa)
   // ======================
-  // Dimensiones para el diagrama: usar el BLOQUE OPTIMIZADO de la primera fila
+  // Dimensiones para el diagrama: usar el BLOQUE COMBINADO (suma de anchos entre filas)
   const first = rows[0] || {};
-  const dimsBlock = first?.dimsOpt || null; // [Lopt, Aopt, Hopt]
+  const dimsBlock = combined.dims || first?.dimsOpt || null; // [Lopt, Aopt, Hopt]
   const Lnum = dimsBlock ? dimsBlock[0] : (Number(first.largo) > 0 ? Number(first.largo) : 30);
   const Anum = dimsBlock ? dimsBlock[1] : (Number(first.ancho) > 0 ? Number(first.ancho) : 20);
   const Hnum = dimsBlock ? dimsBlock[2] : (Number(first.alto)  > 0 ? Number(first.alto)  : 15);
@@ -918,14 +944,14 @@ export default function GLSVolumetricCalculator() {
         <section className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
           <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
             <h2 className="text-lg font-bold text-slate-900">Guía visual de dimensiones</h2>
-            <p className="text-sm text-slate-600 mt-1">Representación del bloque optimizado (primera fila)</p>
+            <p className="text-sm text-slate-600 mt-1">Representación del bloque combinado (suma de anchos de todas las filas)</p>
           </div>
           
           <div className="p-6">
             <div className="bg-slate-50 rounded-xl p-4 mb-4">
               <p className="text-sm text-slate-700">
-                Al aumentar la <strong className="text-blue-600">cantidad</strong>, solo crece el <strong className="text-blue-600">Ancho</strong> del bloque.
-                Las dimensiones mostradas son del paquete consolidado.
+                Cada fila representa un tipo de paquete. El <strong className="text-blue-600">Ancho</strong> total se suma entre filas,
+                y las dimensiones mostradas corresponden al bloque consolidado.
               </p>
             </div>
             
